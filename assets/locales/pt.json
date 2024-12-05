@@ -1,0 +1,8 @@
+{
+    "reload_button": "Recarregar 🔃",
+
+    "start_text": "Olá, eu sou o seu assistente virtual. Como posso ajudar você hoje?",
+    "info_text": "Aqui estão algumas informações sobre mim e meu host:\n\n<b>OS</b>: <code>${os}</code> (${arch})\n<b>CPU</b>: <code>${cpu_usage}%</code>\n<b>Host</b>: <code>${host}</code>\n<b>Versão</b>: <code>${version}</code> (k <code>${kernel_version}</code>)\n<b>Memória</b>: <code>${memory_usage}%</code> (<code>${used_memory} GB</code> / <code>${total_memory} GB</code>)",
+
+    "info_updated": "Informações atualizadas com sucesso!"
+}

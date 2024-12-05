@@ -1,0 +1,26 @@
+[package]
+name = "grymbb"
+version = "0.1.0"
+authors = ["Andriel Ferreira <andrielfr@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = """
+A small telegram userbot written in Rust.
+"""
+homepage = "https://github.com/AndrielFR/grymbb"
+repository = "https://github.com/AndrielFR/grymbb"
+edition = "2021"
+
+[dependencies]
+# ferogram = { git = "ssh://git@github.com/AndrielFR/ferogram" }
+ferogram = { path = "../ferogram/lib/ferogram", features = ["macros"] }
+grammers-client = { git = "https://github.com/Lonami/grammers", features = [ "html" ] }
+
+log = "*"
+rand = "*"
+toml = "*"
+tokio = { version = "1", features = ["fs", "rt", "macros"] }
+serde = { version = "1", features = ["derive"] }
+maplit = "1"
+sysinfo = "*"
+env_logger = "*"
+serde_json = "1"
