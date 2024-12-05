@@ -11,8 +11,7 @@ repository = "https://github.com/AndrielFR/grymbb"
 edition = "2021"
 
 [dependencies]
-# ferogram = { git = "ssh://git@github.com/AndrielFR/ferogram" }
-ferogram = { path = "../ferogram/lib/ferogram", features = ["macros"] }
+ferogram = { git = "https://github.com/AmanoTeam/ferogram" }
 grammers-client = { git = "https://github.com/Lonami/grammers", features = [ "html" ] }
 
 log = "*"

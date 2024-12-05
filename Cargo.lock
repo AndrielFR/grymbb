@@ -339,10 +339,10 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 [[package]]
 name = "ferogram"
 version = "0.1.1"
+source = "git+https://github.com/AmanoTeam/ferogram#c065cb06d4dbd5dba1f922ec745793f1ee1de964"
 dependencies = [
  "async-recursion",
  "async-trait",
- "ferogram-macros",
  "futures-util",
  "grammers-client",
  "log",
@@ -350,10 +350,6 @@ dependencies = [
  "rpassword",
  "tokio",
 ]
-
-[[package]]
-name = "ferogram-macros"
-version = "0.1.0"
 
 [[package]]
 name = "flate2"
