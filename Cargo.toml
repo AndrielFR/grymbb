@@ -12,14 +12,19 @@ edition = "2021"
 
 [dependencies]
 ferogram = { git = "https://github.com/AmanoTeam/ferogram" }
-grammers-client = { git = "https://github.com/Lonami/grammers", features = [ "html" ] }
+grammers-client = { git = "https://github.com/Lonami/grammers", features = ["html"] }
 
 log = "*"
 rand = "*"
 toml = "*"
+uuid = { version = "1", features = ["v4"] }
+bytes = "1"
+regex = "1"
 tokio = { version = "1", features = ["fs", "rt", "macros"] }
 serde = { version = "1", features = ["derive"] }
+chrono = "*"
 maplit = "1"
+reqwest = { version = "*", features = ["json", "multipart"] }
 sysinfo = "*"
 env_logger = "*"
 serde_json = "1"

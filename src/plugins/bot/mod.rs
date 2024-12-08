@@ -6,11 +6,20 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! This module contains the bot plugins setup.
+
 use ferogram::Dispatcher;
 
 mod info;
+mod purge;
+mod screenshot;
 mod start;
+pub mod tic_tac_toe;
 
 pub fn setup(dp: Dispatcher) -> Dispatcher {
-    dp.router(|_| start::setup()).router(|_| info::setup())
+    dp.router(|_| start::setup())
+        .router(|_| info::setup())
+        .router(|_| purge::setup())
+        .router(|_| screenshot::setup())
+        .router(|_| tic_tac_toe::setup())
 }

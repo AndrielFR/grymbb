@@ -9,18 +9,23 @@
 //! This module contains the info command handler.
 
 use ferogram::{handler, Filter, Result, Router};
-use grammers_client::{button, reply_markup, types::Message, InputMessage};
+use grammers_client::{
+    button, reply_markup,
+    types::{InputMessage, Message},
+};
 use maplit::hashmap;
 use sysinfo::System;
 
 use crate::{filters, modules::i18n::I18n, Sender};
 
+/// Setup the info command.
 pub fn setup() -> Router {
     Router::default().handler(
         handler::new_message(filters::commands(&["i", "info"]).and(filters::sudoers())).then(info),
     )
 }
 
+/// Handles the info command.
 async fn info(message: Message, i18n: I18n, tx: Sender) -> Result<()> {
     let t = |key: &str| i18n.translate(key);
     let t_a = |key: &str, args| i18n.translate_with_args(key, args);
@@ -43,14 +48,13 @@ async fn info(message: Message, i18n: I18n, tx: Sender) -> Result<()> {
         "used_memory" => format!("{:.2}", used_memory),
         "total_memory" => format!("{:.2}", total_memory),
     };
-
-    let input =
+    tx.send(crate::Message::to_bot().send_via_bot_message(
+        message.chat(),
         InputMessage::html(t_a("info_text", args)).reply_markup(&reply_markup::inline(vec![vec![
             button::inline(t("reload_button"), "info"),
-        ]]));
-
-    tx.send(crate::Message::to_bot().send_via_bot_message(message.chat(), input))
-        .await?;
+        ]])),
+    ))
+    .await?;
 
     Ok(())
 }

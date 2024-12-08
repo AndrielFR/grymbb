@@ -6,4 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+//! This module contains the modules setup.
+
+pub mod games;
 pub mod i18n;

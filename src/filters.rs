@@ -11,7 +11,7 @@
 use std::sync::Arc;
 
 use ferogram::{filter, Filter};
-use grammers_client::Update;
+use grammers_client::{types::inline, Update};
 
 const SUDOER_LIST: [i64; 1] = [1155717290];
 
@@ -28,20 +28,43 @@ pub fn sudoers() -> impl Filter {
             }
             Update::CallbackQuery(query) => {
                 let sender = query.sender();
+                let value = SUDOER_LIST.contains(&sender.id());
 
-                SUDOER_LIST.contains(&sender.id())
+                if !value {
+                    query
+                        .answer()
+                        .alert("You are not allowed to do that.")
+                        .send()
+                        .await
+                        .expect("Failed to send alert message.");
+                }
+
+                value
             }
             Update::InlineQuery(query) => {
                 let sender = query.sender();
+                let value = SUDOER_LIST.contains(&sender.id());
 
-                SUDOER_LIST.contains(&sender.id())
+                if !value {
+                    query
+                        .answer(vec![inline::query::Article::new(
+                            "You are not allowed to do that.",
+                            "You are not allowed to do that.",
+                        )
+                        .into()])
+                        .send()
+                        .await
+                        .expect("Failed to send article.");
+                }
+
+                value
             }
             _ => false,
         }
     }))
 }
 
-/// Custom `command`` filter with prefixes to user instance.
+/// Custom `command` filter with prefixes to user instance.
 pub fn command(pat: &'static str) -> impl Filter {
     filter::command_with(&[";", ",", "."], pat)
 }

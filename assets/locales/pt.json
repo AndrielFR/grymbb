@@ -4,5 +4,61 @@
     "start_text": "Olá, eu sou o seu assistente virtual. Como posso ajudar você hoje?",
     "info_text": "Aqui estão algumas informações sobre mim e meu host:\n\n<b>OS</b>: <code>${os}</code> (${arch})\n<b>CPU</b>: <code>${cpu_usage}%</code>\n<b>Host</b>: <code>${host}</code>\n<b>Versão</b>: <code>${version}</code> (k <code>${kernel_version}</code>)\n<b>Memória</b>: <code>${memory_usage}%</code> (<code>${used_memory} GB</code> / <code>${total_memory} GB</code>)",
 
-    "info_updated": "Informações atualizadas com sucesso!"
+    "purged": "Purgadas <code>${count}</code> mensagens!",
+    "purging": "Purgando ~<code>${count}</code> mensagens...",
+    "purged_me": "Purgadas <code>${count}</code> mensagens minhas!",
+    "purging_me": "Purgando mensagens minhas...",
+    "purged_you": "Purgadas <code>${count}</code> mensagens suas!",
+    "purging_you": "Purgando mensagens suas...",
+    "purge_error": "Ocorreu um erro ao purgar mensagens.",
+
+    "evaluating": "Executando o seu código...\n\n<b>Entrada</b>:\n<blockquote><code>${input}</code></blockquote>",
+    "eval_input": "<b>Entrada</b>:\n<blockquote><code>${input}</code></blockquote>\n\n<b>Tempo de execução</b>: <code>${time}</code>s.",
+    "eval_output": "<b>Entrada</b>:\n<blockquote><code>${input}</code></blockquote>\n\n<b>Saída</b>:\n<blockquote><code>${output}</code></blockquote>\n\n<b>Tempo de execução</b>: <code>${time}</code>s.",
+    "eval_no_code": "Você não digitou nenhum código para executar.",
+    "eval_failure": "Ocorreu um erro ao executar o seu código.",
+    "eval_output_file": "Este arquivo contém o resultado da execução do seu código.",
+
+    "search_error": "Ocorreu um erro ao procurar a foto.",
+    "search_result": "Aqui está o resultado da pesquisa: <a href=\"${url}\">${title}</a>.",
+    "searching_photo": "Procurando a foto no Google...",
+    "downloading_photo": "Baixando a foto...",
+
+    "screenshot_error": "Ocorreu um erro ao capturar a página.",
+    "screenshot_no_url": "Você não digitou nenhum URL para capturar.",
+    "screenshot_many_urls": "Você digitou muitos URLs para capturar.",
+    "screenshot_processing": "Processando sua captura...",
+
+    "reply_needed": "Este comando deve ser usado como resposta a uma <b>mensagem</b>.",
+    "reply_not_url": "Este comando só pode ser usado em mensagens com URL.",
+    "reply_not_media": "Este comando só pode ser usado em mensagens com mídia.",
+    "reply_not_photo": "Este comando só pode ser usado em mensagens com fotos.",
+    "reply_not_url_or_media": "Este comando só pode ser usado em mensagens com URL ou mídia.",
+
+    "upload_info": "Enviando <code>${name}</code>...\n\n<b>Tipo</b>: <code>${type}</code>.\n<b>Tamanho</b>: <code>${size}</code>.",
+    "upload_time": "Enviado em <code>${time}</code>s.",
+
+    "download_empty": "O arquivo está vazio.",
+    "download_error": "Ocorreu um erro ao baixar o arquivo.",
+    "download_not_url": "Você não digitou nenhum URL para baixar.",
+    "download_processing": "Baixando o arquivo...",
+    "download_size_limit": "O arquivo é muito grande.",
+    "download_size_mismatch": "O tamanho do arquivo não corresponde ao esperado.",
+
+    "you_win": "Você venceu o jogo!",
+    "game_draw": "O jogo empatou.",
+    "game_full": "O jogo está cheio.",
+    "joined_game": "Você entrou no jogo.",
+    "not_in_game": "Você não está participando do jogo.",
+    "player_wins": "${player} venceu o jogo!",
+    "ocupied_cell": "Essa célula já está ocupada.",
+    "not_your_turn": "Não é sua vez.",
+    "game_not_found": "Não foi possível encontrar o jogo.",
+
+    "flood_wait": "Aguardando <code>${seconds}</code> segundos para continuar...",
+    "old_message": "Esta mensagem é muito antiga.",
+    "info_updated": "Informações atualizadas com sucesso!",
+
+    "i_dont_have_perms": "Eu não tenho permissões suficientes para fazer isso.",
+    "you_dont_have_perms": "Você não tem permissões suficientes para fazer isso."
 }

@@ -10,19 +10,21 @@
 
 use std::{ops::ControlFlow, time::Duration};
 
-use config::Config;
 use ferogram::{Client, Context, Injector, Result};
 use grammers_client::{
     types::{self, inline},
     ReconnectionPolicy,
 };
-use modules::i18n::I18n;
 use tokio::sync::mpsc;
 
 mod config;
 mod filters;
 mod modules;
 mod plugins;
+pub mod utils;
+
+use config::Config;
+use modules::{games::GameManager, i18n::I18n};
 
 /// The receiver of the channel.
 pub type Receiver = mpsc::Receiver<crate::Message>;
@@ -52,27 +54,27 @@ impl ReconnectionPolicy for MyPolicy {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    // Set the log level to info if it is not set.
+    // Sets the log level to info if it is not set.
     if let Err(_) = std::env::var("RUST_LOG") {
         unsafe {
             std::env::set_var("RUST_LOG", "info");
         }
     }
 
-    // Initialize the logger.
+    // Initializes the logger.
     env_logger::init();
 
-    // Load the configuration.
+    // Loads the configuration.
     let config = Config::load()?;
 
-    // Set shared values.
+    // Sets shared values.
     let api_id = config.telegram.api_id;
     let api_hash = &config.telegram.api_hash;
     let app_version = "1.0.0";
     let lang_code = "pt";
     let flood_sleep_threshold = config.telegram.flood_sleep_threshold;
 
-    // Construct and connect bot instance.
+    // Constructs and connect bot instance.
     let mut bot =
         Client::bot(config.bot.token)
             .api_id(api_id)
@@ -89,7 +91,7 @@ async fn main() -> Result<()> {
             .build_and_connect()
             .await?;
 
-    // Construct and connect user instance.
+    // Constructs and connect user instance.
     let mut user = Client::user(config.user.phone_number)
         .api_id(api_id)
         .api_hash(api_hash)
@@ -105,23 +107,25 @@ async fn main() -> Result<()> {
         .build_and_connect()
         .await?;
 
-    // Construct the i18n module and load it.
-    let mut i18n = I18n::with(lang_code);
-    i18n.load();
-
-    // Create a dependency injector.
+    // Creates a dependency injector.
     let mut injector = Injector::default();
 
-    // Inject the i18n module into the injector.
+    // Constructs the i18n module, load and inject it.
+    let mut i18n = I18n::with(lang_code);
+    i18n.load();
     injector.insert(i18n);
 
-    // Create a channel to communicate between the clients.
+    // Constructs the games module and inject it.
+    let manager = GameManager::new();
+    injector.insert(manager);
+
+    // Creates a channel to communicate between the clients.
     let (tx, rx) = mpsc::channel::<Message>(10);
 
-    // Inject the channel's sender into the injector.
+    // Injects the channel's sender into the injector.
     injector.insert(tx);
 
-    // Clone the bot and user inner instances to be used inside the plugins.
+    // Clones the bot and user inner instances to be used inside the plugins.
     let bot_inner = bot.inner().clone();
     let user_inner = user.inner().clone();
 
@@ -129,7 +133,7 @@ async fn main() -> Result<()> {
     bot = bot.dispatcher(|_| plugins::bot(user_inner, injector.clone()));
     user = user.dispatcher(|_| plugins::user(bot_inner, injector));
 
-    // Clone the bot and user instances to be used inside the task.
+    // Clones the bot and user instances to be used inside the task.
     let bot_inner = bot.inner().clone();
     let user_inner = user.inner().clone();
 
@@ -143,11 +147,11 @@ async fn main() -> Result<()> {
             .expect("Failed to handle message between the clients");
     });
 
-    // Start the clients.
+    // Run the clients.
     bot.run().await?;
     user.run().await?;
 
-    // Wait for Ctrl+C to stop the clients.
+    // Waits for a Ctrl+C signal to stop the clients.
     ferogram::wait_for_ctrl_c().await;
 
     Ok(())
@@ -284,10 +288,10 @@ async fn handle_message(
                     loop {
                         match results.next().await {
                             Ok(Some(result)) => {
-                                let title = result.title().unwrap();
+                                let title = result.title().expect("Title not found");
 
                                 if *title == number.to_string() {
-                                    result.send(&chat).await.unwrap();
+                                    result.send(&chat).await.expect("Failed to send message");
                                 }
 
                                 break;
@@ -315,8 +319,7 @@ async fn handle_message(
                                 )
                                 .into()])
                                 .send()
-                                .await
-                                .unwrap();
+                                .await?;
 
                             break;
                         }

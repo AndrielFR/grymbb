@@ -8,20 +8,21 @@
 
 //! This module contains the start command handler.
 
-use ferogram::{filter, handler, Filter, Result, Router};
-use grammers_client::types::Message;
+use ferogram::{filter, handler, Context, Filter, Result, Router};
 
 use crate::{filters, modules::i18n::I18n};
 
+/// Setup the start command.
 pub fn setup() -> Router {
     Router::default()
         .handler(handler::new_message(filter::command("start").and(filters::sudoers())).then(start))
 }
 
-async fn start(message: Message, i18n: I18n) -> Result<()> {
+/// Handles the start command.
+async fn start(ctx: Context, i18n: I18n) -> Result<()> {
     let t = |key: &str| i18n.translate(key);
 
-    message.reply(t("start_text")).await?;
+    ctx.reply(t("start_text")).await?;
 
     Ok(())
 }

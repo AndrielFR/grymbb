@@ -11,17 +11,22 @@
 use std::time::Duration;
 
 use ferogram::{filter, handler, Filter, Result, Router};
-use grammers_client::{button, reply_markup, types::CallbackQuery, InputMessage};
+use grammers_client::{
+    button, reply_markup,
+    types::{CallbackQuery, InputMessage},
+};
 use maplit::hashmap;
 use sysinfo::System;
 
 use crate::{filters, modules::i18n::I18n};
 
+/// Setup the info command.
 pub fn setup() -> Router {
     Router::default()
-        .handler(handler::callback_query(filter::regex("info").and(filters::sudoers())).then(info))
+        .handler(handler::callback_query(filter::regex("^info").and(filters::sudoers())).then(info))
 }
 
+/// Handles the info command.
 async fn info(query: CallbackQuery, i18n: I18n) -> Result<()> {
     let t = |key: &str| i18n.translate(key);
     let t_a = |key: &str, args| i18n.translate_with_args(key, args);
@@ -46,17 +51,15 @@ async fn info(query: CallbackQuery, i18n: I18n) -> Result<()> {
         "used_memory" => format!("{:.2}", used_memory),
         "total_memory" => format!("{:.2}", total_memory),
     };
-
-    let input =
-        InputMessage::html(t_a("info_text", args)).reply_markup(&reply_markup::inline(vec![vec![
-            button::inline(t("reload_button"), "info"),
-        ]]));
-
     query
         .answer()
         .text(t("info_updated"))
         .cache_time(Duration::from_secs(10))
-        .edit(input)
+        .edit(
+            InputMessage::html(t_a("info_text", args)).reply_markup(&reply_markup::inline(vec![
+                vec![button::inline(t("reload_button"), "info")],
+            ])),
+        )
         .await?;
 
     Ok(())
