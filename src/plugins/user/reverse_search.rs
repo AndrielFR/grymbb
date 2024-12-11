@@ -84,7 +84,7 @@ async fn reverse_search(ctx: Context, i18n: I18n) -> Result<()> {
         if let Some(media) = reply.media() {
             match media {
                 Media::Photo(ref photo) => {
-                    ctx.edit(t("downloading_photo")).await?;
+                    let msg = ctx.edit_or_reply(t("downloading_photo")).await?;
 
                     let mut bytes = Vec::with_capacity(photo.size() as usize);
 
@@ -93,7 +93,7 @@ async fn reverse_search(ctx: Context, i18n: I18n) -> Result<()> {
                         bytes.extend(chunk);
                     }
 
-                    ctx.edit(t("searching_photo")).await?;
+                    msg.edit(t("searching_photo")).await?;
 
                     let request = req_client
                         .post(GOOGLE_IMAGE_URL)
@@ -112,13 +112,13 @@ async fn reverse_search(ctx: Context, i18n: I18n) -> Result<()> {
                         let url = captures.get(0).unwrap().as_str();
                         let title = captures.get(1).unwrap().as_str();
 
-                        ctx.edit(InputMessage::html(t_a(
+                        msg.edit(InputMessage::html(t_a(
                             "search_result",
                             hashmap! {"url" => url, "title" => title},
                         )))
                         .await?;
                     } else {
-                        ctx.edit(t("search_error")).await?;
+                        msg.edit(t("search_error")).await?;
                     }
                 }
                 _ => {

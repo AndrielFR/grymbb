@@ -20,7 +20,39 @@ use crate::{filters, modules::i18n::I18n};
 /// Setup the purge command.
 pub fn setup() -> Router {
     Router::default()
+        .handler(
+            handler::new_message(filter::commands(&["del", "delete"]).and(filters::sudoers()))
+                .then(delete),
+        )
         .handler(handler::new_message(filter::command("purge").and(filters::sudoers())).then(purge))
+}
+
+/// Handles the delete command.
+async fn delete(ctx: Context, i18n: I18n) -> Result<()> {
+    let t = |key: &str| i18n.translate(key);
+
+    if let Some(reply) = ctx.get_reply().await? {
+        match reply.delete().await {
+            Ok(_) => {
+                let sent = ctx.reply(t("deleted")).await?;
+
+                tokio::time::sleep(Duration::from_secs(4)).await;
+                sent.delete().await?;
+                let _ = ctx.delete().await;
+            }
+            Err(e) if e.is("MESSAGE_DELETE_FORBIDDEN") => {
+                ctx.reply(t("i_dont_have_perms")).await?;
+            }
+            Err(e) => {
+                log::error!("failed to delete message: {}", e);
+                ctx.reply(t("delete_error")).await?;
+            }
+        };
+    } else {
+        ctx.reply(InputMessage::html(t("reply_needed"))).await?;
+    }
+
+    Ok(())
 }
 
 /// Handles the purge command.
@@ -76,7 +108,7 @@ async fn purge(ctx: Context, i18n: I18n) -> Result<()> {
                 }
                 Err(e) => {
                     log::error!("Failed to purge messages: {}", e);
-                    ctx.edit(t("purge_error")).await?;
+                    sent.edit(t("purge_error")).await?;
 
                     return Ok(());
                 }

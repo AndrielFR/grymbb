@@ -86,6 +86,8 @@ impl GameManager {
 pub enum Game {
     /// The tic tac toe game.
     TicTacToe(TicTacToe),
+    /* /// The sudoku game.
+    Sudoku(Sudoku), */
 }
 
 impl Game {
@@ -228,6 +230,7 @@ impl Game {
         }
     }
 
+    #[allow(dead_code)]
     /// Removes a player from the game.
     pub fn remove_player(&mut self, id: i64) {
         match self {
@@ -244,6 +247,7 @@ impl Game {
         }
     }
 
+    #[allow(dead_code)]
     /// Returns the next player.
     pub fn next_player(&self) -> Option<&Player> {
         match self {
@@ -306,6 +310,7 @@ impl Game {
         text
     }
 
+    #[allow(dead_code)]
     /// Generates a new board.
     pub fn generate_board(&mut self, size: RangeInclusive<usize>) {
         match self {
@@ -429,6 +434,25 @@ impl TicTacToe {
     }
 }
 
+#[allow(dead_code)]
+#[derive(Clone)]
+pub struct Sudoku {
+    /// The game ID.
+    id: i32,
+    /// The game board.
+    board: Vec<Vec<char>>,
+    /// The game players.
+    players: HashMap<i64, Player>,
+    /// The game state.
+    state: State,
+    /// The game winner.
+    winner: Option<i64>,
+    /// The last player.
+    last_player: i64,
+    /// The current player.
+    current_player: i64,
+}
+
 /// The player.
 #[derive(Clone)]
 pub struct Player {
@@ -472,6 +496,7 @@ impl Player {
         )
     }
 
+    #[allow(dead_code)]
     /// Returns the player first name.
     pub fn first_name(&self) -> &str {
         &self.first_name

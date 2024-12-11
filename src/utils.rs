@@ -8,13 +8,14 @@
 
 //! This module contains some utility functions.
 
-use std::{fs::File, io::Write, path::Path};
+use std::path::Path;
 
 use bytes::Bytes;
 use ferogram::Result;
 use grammers_client::button::{self, Inline};
 use reqwest::header::{HeaderMap, CONTENT_DISPOSITION, CONTENT_TYPE, USER_AGENT};
 use serde_json::json;
+use tokio_uring::fs::File;
 use uuid::Uuid;
 
 /// The URL of the API to take screenshots.
@@ -85,7 +86,7 @@ pub async fn download_file<U: ToString, P: AsRef<Path>>(url: U, path: P) -> Resu
     let response = reqwest::get(&url).await?;
 
     if !path.exists() {
-        std::fs::create_dir_all(path)?;
+        tokio_uring::fs::create_dir_all(path).await?;
     }
 
     let file_name = if let Some(disposition) = response.headers().get(CONTENT_DISPOSITION) {
@@ -110,9 +111,14 @@ pub async fn download_file<U: ToString, P: AsRef<Path>>(url: U, path: P) -> Resu
         std::fs::remove_file(&file_path)?;
     }
 
-    let mut file = File::create(&file_path)?;
-    file.write_all(&response.bytes().await?)?;
-    file.sync_all()?;
+    let bytes = response.bytes().await?;
+
+    let file = File::create(&file_path).await?;
+    let (res, _) = file.write_all_at(bytes.to_vec(), 0).await;
+    res?;
+
+    file.sync_all().await?;
+    file.close().await?;
 
     Ok(())
 }

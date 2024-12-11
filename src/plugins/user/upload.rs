@@ -77,13 +77,11 @@ async fn upload_file(url: &str, ctx: Context, i18n: &I18n) -> Result<()> {
     let t = |key: &str| i18n.translate(key);
     let t_a = |key: &str, args| i18n.translate_with_args(key, args);
 
-    let client = ctx.client();
-
     let time = Instant::now();
     match fetch_stream(url).await {
         Ok(stream) => {
             if stream.is_empty() {
-                ctx.edit(t("download_empty")).await?;
+                ctx.edit_or_reply(t("download_empty")).await?;
                 return Ok(());
             }
 
@@ -91,24 +89,24 @@ async fn upload_file(url: &str, ctx: Context, i18n: &I18n) -> Result<()> {
             let size = stream.len();
 
             if size > 2 * 1024 * 1024 * 1024 {
-                ctx.edit(t("download_size_limit")).await?;
+                ctx.edit_or_reply(t("download_size_limit")).await?;
                 return Ok(());
             } else if let Some(length) = stream.content_length() {
                 if length != size as u64 {
-                    ctx.edit(t("download_size_mismatch")).await?;
+                    ctx.edit_or_reply(t("download_size_mismatch")).await?;
                     return Ok(());
                 }
             }
 
             let content_type = stream.content_type().to_string();
-            ctx.edit(InputMessage::html(t_a(
+            ctx.edit_or_reply(InputMessage::html(t_a(
                         "upload_info",
                         hashmap! { "name" => file_name.to_string(), "type" => content_type, "size" => human_readable_size(size) },
                     )))
                     .await?;
 
             let mut cursor = Cursor::new(stream.as_bytes());
-            let file = client.upload_stream(&mut cursor, size, file_name).await?;
+            let file = ctx.upload_stream(&mut cursor, size, file_name).await?;
 
             ctx.send(
                 InputMessage::html(t_a(
@@ -121,7 +119,7 @@ async fn upload_file(url: &str, ctx: Context, i18n: &I18n) -> Result<()> {
             ctx.delete().await?;
         }
         Err(_) => {
-            ctx.edit(t("download_error")).await?;
+            ctx.edit_or_reply(t("download_error")).await?;
         }
     }
 

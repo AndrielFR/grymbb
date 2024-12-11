@@ -5,12 +5,14 @@
     "info_text": "Aqui estão algumas informações sobre mim e meu host:\n\n<b>OS</b>: <code>${os}</code> (${arch})\n<b>CPU</b>: <code>${cpu_usage}%</code>\n<b>Host</b>: <code>${host}</code>\n<b>Versão</b>: <code>${version}</code> (k <code>${kernel_version}</code>)\n<b>Memória</b>: <code>${memory_usage}%</code> (<code>${used_memory} GB</code> / <code>${total_memory} GB</code>)",
 
     "purged": "Purgadas <code>${count}</code> mensagens!",
+    "deleted": "Mensagem deletada!",
     "purging": "Purgando ~<code>${count}</code> mensagens...",
     "purged_me": "Purgadas <code>${count}</code> mensagens minhas!",
     "purging_me": "Purgando mensagens minhas...",
     "purged_you": "Purgadas <code>${count}</code> mensagens suas!",
     "purging_you": "Purgando mensagens suas...",
     "purge_error": "Ocorreu um erro ao purgar mensagens.",
+    "delete_error": "Ocorreu um erro ao deletar a mensagem.",
 
     "evaluating": "Executando o seu código...\n\n<b>Entrada</b>:\n<blockquote><code>${input}</code></blockquote>",
     "eval_input": "<b>Entrada</b>:\n<blockquote><code>${input}</code></blockquote>\n\n<b>Tempo de execução</b>: <code>${time}</code>s.",

@@ -61,17 +61,20 @@ impl I18n {
         }
     }
 
+    #[allow(dead_code)]
     /// Reloads the locales.
     pub fn reload(&mut self) {
         self.locales.clear();
         self.load();
     }
 
+    #[allow(dead_code)]
     /// Gets the current locale.
     pub fn locale(&self) -> String {
         self.current_locale.try_lock().unwrap().clone()
     }
 
+    #[allow(dead_code)]
     /// Gets the avaiable locales.
     pub fn locales(&self) -> Vec<String> {
         self.locales.keys().cloned().collect()
@@ -84,6 +87,7 @@ impl I18n {
         *current_locale = locale.into();
     }
 
+    #[allow(dead_code)]
     /// Uses a locale in a context.
     pub fn with_locale(&self, locale: impl Into<String>) -> LocaleGuard<'_> {
         LocaleGuard::new(&self, locale)
@@ -155,10 +159,10 @@ pub struct LocaleGuard<'a> {
 }
 
 impl<'a> LocaleGuard<'a> {
+    #[allow(dead_code)]
     /// Creates a new `LocaleGuard` instance.
     pub fn new(i18n: &'a I18n, locale: impl Into<String>) -> Self {
         let previous_locale = i18n.locale();
-
         i18n.set_locale(locale.into());
 
         Self {

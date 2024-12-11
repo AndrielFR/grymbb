@@ -18,12 +18,14 @@ use grammers_client::{
 use tokio::sync::mpsc;
 
 mod config;
+pub mod dump;
 mod filters;
 mod modules;
 mod plugins;
 pub mod utils;
 
 use config::Config;
+pub use dump::Dump;
 use modules::{games::GameManager, i18n::I18n};
 
 /// The receiver of the channel.
@@ -52,31 +54,30 @@ impl ReconnectionPolicy for MyPolicy {
     }
 }
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<()> {
-    // Sets the log level to info if it is not set.
-    if let Err(_) = std::env::var("RUST_LOG") {
-        unsafe {
-            std::env::set_var("RUST_LOG", "info");
+fn main() -> Result<()> {
+    tokio_uring::start(async {
+        // Sets the log level to info if it is not set.
+        if let Err(_) = std::env::var("RUST_LOG") {
+            unsafe {
+                std::env::set_var("RUST_LOG", "info");
+            }
         }
-    }
 
-    // Initializes the logger.
-    env_logger::init();
+        // Initializes the logger.
+        env_logger::init();
 
-    // Loads the configuration.
-    let config = Config::load()?;
+        // Loads the configuration.
+        let config = Config::load()?;
 
-    // Sets shared values.
-    let api_id = config.telegram.api_id;
-    let api_hash = &config.telegram.api_hash;
-    let app_version = "1.0.0";
-    let lang_code = "pt";
-    let flood_sleep_threshold = config.telegram.flood_sleep_threshold;
+        // Sets shared values.
+        let api_id = config.telegram.api_id;
+        let api_hash = &config.telegram.api_hash;
+        let app_version = "1.0.0";
+        let lang_code = "pt";
+        let flood_sleep_threshold = config.telegram.flood_sleep_threshold;
 
-    // Constructs and connect bot instance.
-    let mut bot =
-        Client::bot(config.bot.token)
+        // Constructs and connect bot instance.
+        let mut bot = Client::bot(config.bot.token)
             .api_id(api_id)
             .api_hash(api_hash)
             .session_file(config.bot.session_file)
@@ -91,70 +92,71 @@ async fn main() -> Result<()> {
             .build_and_connect()
             .await?;
 
-    // Constructs and connect user instance.
-    let mut user = Client::user(config.user.phone_number)
-        .api_id(api_id)
-        .api_hash(api_hash)
-        .session_file(config.user.session_file)
-        .app_version(app_version)
-        .lang_code(lang_code)
-        .catch_up(config.user.catch_up)
-        .flood_sleep_threshold(flood_sleep_threshold)
-        .reconnection_policy(&MyPolicy)
-        .on_err(|_, _, err| async move {
-            log::error!("An error occurred whitin user instance: {}", err)
-        })
-        .build_and_connect()
-        .await?;
+        // Constructs and connect user instance.
+        let mut user = Client::user(config.user.phone_number)
+            .api_id(api_id)
+            .api_hash(api_hash)
+            .session_file(config.user.session_file)
+            .app_version(app_version)
+            .lang_code(lang_code)
+            .catch_up(config.user.catch_up)
+            .flood_sleep_threshold(flood_sleep_threshold)
+            .reconnection_policy(&MyPolicy)
+            .on_err(|_, _, err| async move {
+                log::error!("An error occurred whitin user instance: {}", err)
+            })
+            .build_and_connect()
+            .await?;
 
-    // Creates a dependency injector.
-    let mut injector = Injector::default();
+        // Creates a dependency injector.
+        let mut injector = Injector::default();
 
-    // Constructs the i18n module, load and inject it.
-    let mut i18n = I18n::with(lang_code);
-    i18n.load();
-    injector.insert(i18n);
+        // Constructs the i18n module, load and inject it.
+        let mut i18n = I18n::with(lang_code);
+        i18n.load();
+        injector.insert(i18n);
 
-    // Constructs the games module and inject it.
-    let manager = GameManager::new();
-    injector.insert(manager);
+        // Constructs the games module and inject it.
+        let manager = GameManager::new();
+        injector.insert(manager);
 
-    // Creates a channel to communicate between the clients.
-    let (tx, rx) = mpsc::channel::<Message>(10);
+        // Creates a channel to communicate between the clients.
+        let (tx, rx) = mpsc::channel::<Message>(10);
 
-    // Injects the channel's sender into the injector.
-    injector.insert(tx);
+        // Injects the channel's sender into the injector.
+        injector.insert(tx);
 
-    // Clones the bot and user inner instances to be used inside the plugins.
-    let bot_inner = bot.inner().clone();
-    let user_inner = user.inner().clone();
+        // Clones the bot and user inner instances to be used inside the plugins.
+        let bot_inner = bot.inner().clone();
+        let user_inner = user.inner().clone();
 
-    // Register the dispatcher of each client.
-    bot = bot.dispatcher(|_| plugins::bot(user_inner, injector.clone()));
-    user = user.dispatcher(|_| plugins::user(bot_inner, injector));
+        // Register the dispatcher of each client.
+        bot = bot.dispatcher(|_| plugins::bot(user_inner, injector.clone()));
+        user = user.dispatcher(|_| plugins::user(bot_inner, injector));
 
-    // Clones the bot and user instances to be used inside the task.
-    let bot_inner = bot.inner().clone();
-    let user_inner = user.inner().clone();
+        // Clones the bot and user instances to be used inside the task.
+        let bot_inner = bot.inner().clone();
+        let user_inner = user.inner().clone();
 
-    // Creates a new bot's context.
-    let bot_ctx = bot.new_ctx();
+        // Creates a new bot's context.
+        let bot_ctx = bot.new_ctx();
 
-    // Spawn a task to handle the messages.
-    tokio::task::spawn(async move {
-        handle_message(bot_inner, user_inner, rx, bot_ctx)
-            .await
-            .expect("Failed to handle message between the clients");
-    });
+        // Spawn a task to handle the messages.
+        tokio::task::spawn(async move {
+            handle_message(bot_inner, user_inner, rx, bot_ctx)
+                .await
+                .expect("Failed to handle message between the clients");
+        });
 
-    // Run the clients.
-    bot.run().await?;
-    user.run().await?;
+        // Run the clients.
+        bot.run().await?;
+        user.run().await?;
 
-    // Waits for a Ctrl+C signal to stop the clients.
-    ferogram::wait_for_ctrl_c().await;
+        // Waits for a Ctrl+C signal to stop the clients.
+        ferogram::wait_for_ctrl_c().await;
 
-    Ok(())
+        Ok(())
+    })
 }
 
 /// The action to be taken with the message.

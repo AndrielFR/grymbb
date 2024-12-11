@@ -44,7 +44,7 @@ async fn screenshot(ctx: Context, i18n: I18n) -> Result<()> {
                 return Ok(());
             }
 
-            ctx.edit(t("screenshot_processing")).await?;
+            let msg = ctx.edit_or_reply(t("screenshot_processing")).await?;
 
             let entity = url_entities[0];
             let offset = entity.offset() as usize;
@@ -58,7 +58,7 @@ async fn screenshot(ctx: Context, i18n: I18n) -> Result<()> {
                     ctx.delete().await?;
                 }
                 Err(_) => {
-                    ctx.edit(t("screenshot_error")).await?;
+                    msg.edit(t("screenshot_error")).await?;
                 }
             }
         } else {
@@ -69,17 +69,17 @@ async fn screenshot(ctx: Context, i18n: I18n) -> Result<()> {
     } else if text.split_whitespace().count() > 2 {
         ctx.reply(t("screenshot_many_urls")).await?;
     } else {
-        ctx.edit(t("screenshot_processing")).await?;
+        let msg = ctx.edit_or_reply(t("screenshot_processing")).await?;
 
         let url = text.split_whitespace().skip(1).next().unwrap();
         match take_a_screenshot(url.to_string()).await {
             Ok(photo_url) => {
-                ctx.send(InputMessage::html("").photo_url(photo_url))
+                ctx.send(InputMessage::text(url).photo_url(photo_url))
                     .await?;
                 ctx.delete().await?;
             }
             Err(_) => {
-                ctx.edit(t("screenshot_error")).await?;
+                msg.edit(t("screenshot_error")).await?;
             }
         }
     }

@@ -10,6 +10,7 @@
 
 use ferogram::Dispatcher;
 
+mod dump;
 mod eval;
 mod info;
 mod purge;
@@ -20,12 +21,13 @@ mod tic_tac_toe;
 mod upload;
 
 pub fn setup(dp: Dispatcher) -> Dispatcher {
-    dp.router(|_| info::setup())
-        .router(|_| purge::setup())
+    dp.router(|_| dump::setup())
         .router(|_| eval::setup())
-        .router(|_| sed::setup())
+        .router(|_| info::setup())
+        .router(|_| purge::setup())
         .router(|_| reverse_search::setup())
         .router(|_| screenshot::setup())
-        .router(|_| upload::setup())
+        .router(|_| sed::setup())
         .router(|_| tic_tac_toe::setup())
+        .router(|_| upload::setup())
 }

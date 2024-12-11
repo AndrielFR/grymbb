@@ -70,7 +70,7 @@ async fn screenshot(ctx: Context, i18n: I18n) -> Result<()> {
         let url = text.split_whitespace().skip(1).next().unwrap();
         match take_a_screenshot(url.to_string()).await {
             Ok(photo_url) => {
-                ctx.send(InputMessage::html("").photo_url(photo_url))
+                ctx.send(InputMessage::text(url).photo_url(photo_url))
                     .await?;
                 sent.delete().await?;
             }

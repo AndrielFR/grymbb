@@ -41,11 +41,12 @@ async fn eval(ctx: Context, i18n: I18n) -> Result<()> {
             .collect::<Vec<_>>()
             .join(" ");
 
-        ctx.edit(InputMessage::html(t_a(
-            "evaluating",
-            hashmap! { "input" => input.clone() },
-        )))
-        .await?;
+        let msg = ctx
+            .edit_or_reply(InputMessage::html(t_a(
+                "evaluating",
+                hashmap! { "input" => input.clone() },
+            )))
+            .await?;
         let time = Instant::now();
 
         if let Ok(mut child) = Command::new("rust-script")
@@ -75,11 +76,10 @@ async fn eval(ctx: Context, i18n: I18n) -> Result<()> {
 
                     let mut cursor = Cursor::new(bytes);
                     let file = ctx
-                        .client()
                         .upload_stream(&mut cursor, size, "output.txt".to_string())
                         .await?;
 
-                    ctx.edit(InputMessage::html(t_a(
+                    msg.edit(InputMessage::html(t_a(
                         "eval_input",
                         hashmap! { "input" => input, "time" => elapsed.to_string() },
                     )))
@@ -90,7 +90,7 @@ async fn eval(ctx: Context, i18n: I18n) -> Result<()> {
                     return Ok(());
                 }
 
-                ctx.edit(InputMessage::html(t_a(
+                msg.edit(InputMessage::html(t_a(
                 "eval_output",
                 hashmap! { "input" => input, "output" => output, "time" => elapsed.to_string() },
                 )))

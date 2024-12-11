@@ -20,12 +20,48 @@ use crate::{filters, modules::i18n::I18n};
 pub fn setup() -> Router {
     Router::default()
         .handler(
+            handler::new_message(filters::commands(&["del", "delete"]).and(filters::sudoers()))
+                .then(delete),
+        )
+        .handler(
             handler::new_message(filters::command("purge").and(filters::sudoers())).then(purge),
         )
         .handler(
             handler::new_message(filters::command("purgeme").and(filters::sudoers()))
                 .then(purge_me),
         )
+}
+
+/// Handles the delete command.
+async fn delete(ctx: Context, i18n: I18n) -> Result<()> {
+    let t = |key: &str| i18n.translate(key);
+
+    if let Some(reply) = ctx.get_reply().await? {
+        match reply.delete().await {
+            Ok(_) => {
+                let msg = ctx.edit_or_reply(t("deleted")).await?;
+
+                tokio::time::sleep(Duration::from_secs(4)).await;
+                msg.delete().await?;
+                let _ = ctx.delete().await;
+            }
+            Err(e) if e.is("MESSAGE_DELETE_FORBIDDEN") => {
+                ctx.edit_or_reply(t("you_dont_have_perms")).await?;
+            }
+            Err(e) => {
+                log::error!("failed to delete message: {}", e);
+                ctx.edit_or_reply(t("delete_error")).await?;
+            }
+        };
+    } else {
+        let sent = ctx.reply(InputMessage::html(t("reply_needed"))).await?;
+
+        tokio::time::sleep(Duration::from_secs(4)).await;
+        sent.delete().await?;
+        ctx.delete().await?;
+    }
+
+    Ok(())
 }
 
 /// Handles the purge command.
@@ -39,13 +75,14 @@ async fn purge(ctx: Context, i18n: I18n) -> Result<()> {
         let total_messages = message_ids.len();
         let mut purged_messages = 0;
 
-        ctx.edit(InputMessage::html(t_a(
-            "purging",
-            hashmap! {
-                "count" => total_messages.to_string(),
-            },
-        )))
-        .await?;
+        let msg = ctx
+            .edit_or_reply(InputMessage::html(t_a(
+                "purging",
+                hashmap! {
+                    "count" => total_messages.to_string(),
+                },
+            )))
+            .await?;
 
         let mut waited = 0;
         for chunk in message_ids.chunks(100) {
@@ -53,7 +90,7 @@ async fn purge(ctx: Context, i18n: I18n) -> Result<()> {
                 Ok(count) => purged_messages += count,
                 Err(e) if e.is("MESSAGE_ID_INVALID") => continue,
                 Err(e) if e.is("MESSAGE_DELETE_FORBIDDEN") => {
-                    ctx.edit(t("you_dont_have_perms")).await?;
+                    msg.edit(t("you_dont_have_perms")).await?;
 
                     return Ok(());
                 }
@@ -73,14 +110,14 @@ async fn purge(ctx: Context, i18n: I18n) -> Result<()> {
                 }
                 Err(e) => {
                     log::error!("failed to purge messages: {}", e);
-                    ctx.edit(t("purge_error")).await?;
+                    msg.edit(t("purge_error")).await?;
 
                     return Ok(());
                 }
             };
         }
 
-        ctx.edit(InputMessage::html(t_a(
+        msg.edit(InputMessage::html(t_a(
             "purged",
             hashmap! {
                 "count" => purged_messages.to_string(),
@@ -112,7 +149,9 @@ async fn purge_me(ctx: Context, i18n: I18n) -> Result<()> {
         let message_ids = (reply.id()..=(msg.id() - 1)).collect::<Vec<_>>();
         let mut purged_messages = 0;
 
-        ctx.edit(InputMessage::html(t("purging_me"))).await?;
+        let msg = ctx
+            .edit_or_reply(InputMessage::html(t("purging_me")))
+            .await?;
 
         let mut waited = 0;
         for message_id in message_ids {
@@ -141,7 +180,7 @@ async fn purge_me(ctx: Context, i18n: I18n) -> Result<()> {
                 }
                 Err(e) => {
                     log::error!("failed to get message: {}", e);
-                    ctx.edit(InputMessage::html(t("purge_error"))).await?;
+                    msg.edit(InputMessage::html(t("purge_error"))).await?;
 
                     return Ok(());
                 }
@@ -149,7 +188,7 @@ async fn purge_me(ctx: Context, i18n: I18n) -> Result<()> {
             }
         }
 
-        ctx.edit(InputMessage::html(t_a(
+        msg.edit(InputMessage::html(t_a(
             "purged_me",
             hashmap! {
                 "count" => purged_messages.to_string(),

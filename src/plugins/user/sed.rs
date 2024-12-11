@@ -41,7 +41,7 @@ async fn sed(ctx: Context, i18n: I18n) -> Result<()> {
             reply.html_text().replacen(pattern, replacement, 1)
         };
 
-        ctx.edit(InputMessage::html(format!(
+        ctx.edit_or_reply(InputMessage::html(format!(
             "<blockquote>{}</blockquote>",
             new_text
         )))
